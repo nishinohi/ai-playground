@@ -1,0 +1,78 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "ai-playground"
+
+main = "./server.ts"
+workers_dev = true
+# https://developers.cloudflare.com/workers/platform/compatibility-dates
+compatibility_date = "2025-03-25"
+
+[assets]
+# https://developers.cloudflare.com/workers/static-assets/binding/
+directory = "./build/client"
+
+[build]
+command = "npm run build"
+
+# local
+[env.local]
+[env.local.vars]
+MODE = 'local'
+BASE_URL = "http://localhost:5173"
+[[env.local.d1_databases]]
+binding = "DB"
+database_name = "local"
+database_id = "local"
+[[env.local.kv_namespaces]]
+binding = "SESSION_KV"
+id = "local"
+
+# local-build
+[env.local-build]
+[env.local-build.vars]
+MODE = 'local-build'
+BASE_URL = "http://localhost:8787"
+[[env.local-build.d1_databases]]
+binding = "DB"
+database_name = "local-build"
+database_id = "local-build"
+[[env.local-build.kv_namespaces]]
+binding = "SESSION_KV"
+id = "local-build"
+
+# develop
+[env.develop]
+[env.develop.vars]
+MODE = 'develop'
+BASE_URL = "https://ai-playground-develop.tomoya0209.workers.dev"
+[[env.develop.d1_databases]]
+binding = "DB"
+database_name = "ai-playground-develop"
+database_id = "7f6fb833-039f-4022-9935-595c1db136f8"
+[[env.develop.kv_namespaces]]
+binding = "SESSION_KV"
+id = "7b2441c1388944fc991e82a2879bd4ed"
+
+# staging
+[env.staging]
+[env.staging.vars]
+MODE = 'staging'
+BASE_URL = "https://ai-playground-staging.tomoya0209.workers.dev"
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "ai-playground-staging"
+database_id = "test"
+[[env.staging.kv_namespaces]]
+binding = "SESSION_KV"
+id = "test"
+
+# production
+[vars]
+MODE = 'production'
+BASE_URL = "https://ai-playground.tomoya0209.workers.dev"
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-playground"
+database_id = "test"
+[[kv_namespaces]]
+binding = "SESSION_KV"
+id = "test"
