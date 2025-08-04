@@ -22,6 +22,14 @@ npm run deploy          # Deploy to production
 npm run deploy:stg      # Deploy to staging environment
 ```
 
+### Code Quality
+
+```bash
+npm run lint            # Run ESLint and Stylelint
+npm run typecheck       # Run TypeScript type checking
+npx lefthook install    # Install Git hooks for automated linting
+```
+
 ### Database Management
 
 ```bash
@@ -122,3 +130,15 @@ The project includes an initialization script for first-time setup:
 - Authentication requires `CLIENT_ID`, `CLIENT_SECRET`, and `SESSION_SECRET` in environment
 - The project uses **pnpm** as the package manager
 - Node.js version 22.0.0 or higher is required
+- Git hooks are configured with Lefthook for automated code quality checks
+
+## Project-Specific Guidelines
+
+The project includes detailed Japanese documentation in the `.claude` directory:
+
+- **React Router Guidelines** (`.claude/React Router 固有のルール.md`): Routing conventions, file-based routing patterns, and testing with `createRoutesStub`
+- **Coding Practices** (`.claude/コーディングプラクティス.md`): Functional programming approach, DDD principles, TDD methodology
+- **Component Design** (`.claude/コンポーネント設計.md`): Atomic Design pattern with custom modifications for React Router
+- **Testing Strategy** (`.claude/テスト戦略.md`): Test-first approach, error handling patterns, TypeScript best practices
+
+These documents provide comprehensive guidelines for maintaining consistency across the codebase.
