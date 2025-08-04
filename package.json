@@ -10,6 +10,7 @@
     "start": "wrangler dev --env local-build",
     "typegen": "wrangler types",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .; stylelint --cache --cache-location ./node_modules/.cache/stylelint 'app/**/*.css'",
+    "lint:claude": "claude -p 'あなたはリンターです。差分をを確認し、タイポに関連する問題を報告してください。ファイル名と行番号を1行で報告し、問題の説明を2行目で報告してください。他のテキストは返さないでください。' --output-format json",
     "typecheck": "react-router typegen && tsc",
     "auth:generate": "npx @better-auth/cli generate --config ./auth.config.ts",
     "db:generate": "drizzle-kit generate --config ./drizzle/config/drizzle-local.config.ts",
