@@ -7,49 +7,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Core Development
 
 ```bash
-npm run dev              # React Router dev server with HMR
-npm start               # Cloudflare Workers local development
-npm run build           # Build for production
-npm run typecheck       # Run TypeScript type checking
-npm run lint            # Run ESLint and Stylelint
+pnpm run dev              # React Router dev server with HMR
+pnpm start               # Cloudflare Workers local development
+pnpm run build           # Build for production
+pnpm run typecheck       # Run TypeScript type checking
+pnpm run lint            # Run ESLint and Stylelint
+pnpm run lint:claude     # Claude-specific typo detection linter
 ```
 
 ### Deployment
 
 ```bash
-npm run typegen         # Generate Cloudflare binding types (run after wrangler.toml changes)
-npm run deploy          # Deploy to production
-npm run deploy:stg      # Deploy to staging environment
+pnpm run typegen         # Generate Cloudflare binding types (run after wrangler.toml changes)
+pnpm run deploy          # Deploy to production
+pnpm run deploy:stg      # Deploy to staging environment
 ```
 
 ### Code Quality
 
 ```bash
-npm run lint            # Run ESLint and Stylelint
-npm run typecheck       # Run TypeScript type checking
-npx lefthook install    # Install Git hooks for automated linting
+pnpm run lint            # Run ESLint and Stylelint
+pnpm run lint:claude     # Claude-specific typo detection linter
+pnpm run typecheck       # Run TypeScript type checking (includes react-router typegen)
+npx lefthook install     # Install Git hooks for automated linting
 ```
 
 ### Database Management
 
 ```bash
 # Schema & Migrations
-npm run auth:generate   # Generate Better-Auth schema
-npm run db:generate     # Generate Drizzle migration files
+pnpm run auth:generate   # Generate Better-Auth schema
+pnpm run db:generate     # Generate Drizzle migration files
 
 # Apply Migrations
-npm run db:migrate-local        # Apply to local D1
-npm run db:migrate-local-build  # Apply to local-build D1
-npm run db:migrate-dev          # Apply to develop D1
-npm run db:migrate-stg          # Apply to staging D1
-npm run db:migrate-prod         # Apply to production D1
+pnpm run db:migrate-local        # Apply to local D1
+pnpm run db:migrate-local-build  # Apply to local-build D1
+pnpm run db:migrate-dev          # Apply to develop D1
+pnpm run db:migrate-stg          # Apply to staging D1
+pnpm run db:migrate-prod         # Apply to production D1
 
 # Database Viewing
-npm run db:view-local       # Open Drizzle Studio for local DB
-npm run db:view-local-build # Open Drizzle Studio for local-build DB
-npm run db:view-dev         # Open Drizzle Studio for dev DB
-npm run db:view-stg         # Open Drizzle Studio for staging DB
-npm run db:view-prod        # Open Drizzle Studio for production DB
+pnpm run db:view-local       # Open Drizzle Studio for local DB
+pnpm run db:view-local-build # Open Drizzle Studio for local-build DB
+pnpm run db:view-dev         # Open Drizzle Studio for dev DB
+pnpm run db:view-stg         # Open Drizzle Studio for staging DB
+pnpm run db:view-prod        # Open Drizzle Studio for production DB
+
+# Database Cleanup
+pnpm run db:drop-all-local   # Remove local D1 database files
+pnpm run db:drop-all-prod    # Show warning command for production database cleanup
 ```
 
 ## Architecture Overview
@@ -65,16 +71,19 @@ This is a React Router v7 application running on Cloudflare Workers with the fol
 - **Session Storage**: Cloudflare KV
 - **Styling**: Tailwind CSS v4
 - **Type Safety**: TypeScript with generated Cloudflare types
+- **Package Manager**: pnpm (v10.6.3)
+- **Node.js**: v22.0.0 or higher
 
 ### Key Files and Their Purposes
 
 - `server.ts`: Cloudflare Workers entry point that handles all requests
 - `load-context.ts`: Creates request context with Cloudflare bindings (DB, KV, env vars)
-- `app/lib/auth.server.ts`: Server-side auth configuration using Better-Auth
+- `app/lib/auth.server.ts`: Server-side auth configuration using Better-Auth (singleton pattern)
 - `app/lib/auth-client.ts`: Client-side auth client
-- `app/model/d1client.server.ts`: D1 database client with Drizzle ORM
+- `app/model/d1client.server.ts`: D1 database client with Drizzle ORM (singleton pattern)
 - `wrangler.toml`: Cloudflare Workers configuration (environments, bindings)
 - `drizzle/config/drizzle-*.config.ts`: Environment-specific Drizzle configurations
+- `auth.config.ts`: Better-Auth configuration for schema generation
 
 ### Environment Configuration
 
@@ -95,9 +104,10 @@ Each environment has:
 ### Authentication Flow
 
 1. Better-Auth handles OAuth with Google provider
-2. User sessions stored in Cloudflare KV (SESSION_KV binding)
+2. User sessions stored in Cloudflare KV (SESSION_KV binding) with TTL
 3. User data persisted in D1 database
 4. Auth client/server split for SSR compatibility
+5. Secondary storage implementation using KV for session management
 
 ### Database Architecture
 
@@ -105,32 +115,120 @@ Each environment has:
 - Migrations managed through Drizzle Kit
 - Separate database instances per environment
 - Auth tables generated by Better-Auth
+- Schema defined in `db/schema` directory
 
 ### Development Workflow
 
-1. Run `npm run typegen` after modifying `wrangler.toml`
-2. Use `npm run dev` for React Router development with HMR
-3. Use `npm start` to test with Cloudflare Workers runtime
+1. Run `pnpm run typegen` after modifying `wrangler.toml`
+2. Use `pnpm run dev` for React Router development with HMR
+3. Use `pnpm start` to test with Cloudflare Workers runtime
 4. Database changes require migration generation and application
-5. Authentication requires Google OAuth credentials in `.dev.vars`
+5. Authentication requires Google OAuth credentials in `.dev.vars` or `.dev.vars.local-build`
 
 ### Quick Start
 
-The project includes an initialization script for first-time setup:
+The project includes initialization scripts for different development modes:
+
+#### Cloudflare Workers Local Development
 
 ```bash
 ./init.sh  # Sets up local D1, KV, and creates .env.local-build
 ```
 
+This script:
+
+- Cleans up existing `.wrangler` directory
+- Starts wrangler to initialize local D1 and KV
+- Detects the generated SQLite database path
+- Creates `.env.local-build` with correct D1_LOCAL_URL
+- Runs database migrations
+- Creates a `.dev.vars.local-build` template for OAuth credentials
+
+#### React Router Dev Mode
+
+```bash
+./init-dev.sh  # Sets up React Router dev server with D1 and KV
+```
+
+This script:
+
+- Starts React Router dev server on port 5173
+- Initializes D1 and KV in the background
+- Creates `.env.local` with correct D1_LOCAL_URL
+- Runs database migrations
+- Creates a `.dev.vars.local` template for OAuth credentials
+
+## React Router v7 Specific Patterns
+
+### Route File Conventions
+
+- `_index.tsx`: Index route for parent route
+- `$.tsx`: Splat route (catch-all)
+- `$param.tsx`: Dynamic route parameter
+- `route.folder/route.tsx`: Folder-based route organization
+- `_pathless.tsx`: Layout without URL segment (leading underscore)
+- `parent_.tsx`: URL segment without layout nesting (trailing underscore)
+- `($optional).tsx`: Optional route segment
+- `[escaped].tsx`: Escape special characters with brackets
+
+### Type Generation
+
+React Router generates types for loaders and actions:
+
+- Types are generated in `.react-router/types/app/routes/+types/[file_name].ts`
+- Import with: `import type { Route } from './+types/[file_name]'`
+- Types are generated on `pnpm run dev` or `pnpm run typecheck`
+
+### Testing with createRoutesStub
+
+Use `createRoutesStub` for testing components that use React Router hooks:
+
+```typescript
+import { createRoutesStub } from "react-router";
+
+const Stub = createRoutesStub([
+  {
+    path: "/login",
+    Component: LoginForm,
+    action() {
+      return { errors: { username: "Required" } };
+    },
+  },
+]);
+
+render(<Stub initialEntries={["/login"]} />);
+```
+
 ## Important Notes
 
-- Always run `npm run typegen` after changing Cloudflare bindings in `wrangler.toml`
-- Database migrations must be generated with `npm run db:generate` before applying
+- Always run `pnpm run typegen` after changing Cloudflare bindings in `wrangler.toml`
+- Database migrations must be generated with `pnpm run db:generate` before applying
 - For production D1, use migrations instead of push due to Drizzle limitations
 - Authentication requires `CLIENT_ID`, `CLIENT_SECRET`, and `SESSION_SECRET` in environment
-- The project uses **pnpm** as the package manager
-- Node.js version 22.0.0 or higher is required
-- Git hooks are configured with Lefthook for automated code quality checks
+- Git hooks are configured with Lefthook for automated code quality checks (auto-fixes staged files)
+- The project uses singleton patterns for auth and database clients to prevent multiple instances
+- No test framework is currently configured; `createRoutesStub` is available when tests are added
+
+## Code Quality Configuration
+
+### Prettier
+
+- Print width: 120 characters
+- Single quotes, no semicolons
+- Plugins: organize-imports, tailwindcss
+- Custom Tailwind functions: `clsx`, `cn`, `twmerge`, `cva`
+
+### ESLint
+
+- Modern ESLint v9 flat config
+- Custom rules for unused vars and consistent type imports
+- React Router specific form/link component settings
+
+### Lefthook Git Hooks
+
+- Pre-commit hooks for ESLint, Stylelint, and Prettier
+- Automatically fixes staged files (`git update-index --again`)
+- Skips during merge/rebase operations
 
 ## Project-Specific Guidelines
 
