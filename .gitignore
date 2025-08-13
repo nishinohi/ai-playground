@@ -11,3 +11,6 @@
 # cloudflare
 .wrangler
 .dev.vars*
+
+# serena
+.serena/cache/
