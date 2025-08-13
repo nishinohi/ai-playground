@@ -8,7 +8,7 @@ async function main(): Promise<void> {
   const toolArgs: HookInput = JSON.parse(Buffer.concat(chunks).toString())
 
   // readPath is the path to the file that Claude is trying to read
-  const readPath = toolArgs.tool_input?.file_path || toolArgs.tool_input?.path || ''
+  const readPath = (toolArgs.tool_input?.file_path || toolArgs.tool_input?.path || '') as string
 
   if (readPath.includes('.env')) {
     console.error('You cannot read .env file')
