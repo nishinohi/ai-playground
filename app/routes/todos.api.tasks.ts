@@ -1,7 +1,7 @@
 // React Router v7 uses standard Response API
+import { tasks } from 'db/schema'
 import { count } from 'drizzle-orm'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
-import { tasks } from '~/../../db/schema'
 import { getOrCreateAuth } from '~/lib/auth.server'
 import { buildTaskFilters, buildTaskSort, createTaskRequestToNewTask } from '~/lib/todo/task-service'
 import type {

@@ -1,7 +1,7 @@
+import { tasks } from 'db/schema'
 import { and, asc, desc, eq } from 'drizzle-orm'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
-import type * as schema from '~/../../db/schema'
-import { tasks } from '~/../../db/schema'
+import type * as schema from '../../../db/schema'
 import type {
   CreateTaskRequest,
   NewTask,

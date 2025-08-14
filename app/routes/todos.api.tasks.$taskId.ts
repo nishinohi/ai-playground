@@ -1,6 +1,6 @@
+import { tasks } from 'db/schema'
 import { and, eq } from 'drizzle-orm'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
-import { tasks } from '~/../../db/schema'
 import { getOrCreateAuth } from '~/lib/auth.server'
 import { updateTaskRequestToPartial } from '~/lib/todo/task-service'
 import type { TaskResponse, UpdateTaskRequest } from '~/lib/todo/task-types'
