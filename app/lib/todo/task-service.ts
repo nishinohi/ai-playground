@@ -1,6 +1,15 @@
 import { and, asc, desc, eq } from 'drizzle-orm'
 import { tasks } from '~/../../db/schema'
-import type { CreateTaskRequest, NewTask, Task, TaskFilters, TaskSortOptions, UpdateTaskRequest } from './task-types'
+import type {
+  CreateTaskRequest,
+  NewTask,
+  Task,
+  TaskFilters,
+  TaskListResponse,
+  TaskResponse,
+  TaskSortOptions,
+  UpdateTaskRequest,
+} from './task-types'
 import { validateCreateTaskRequest, validateUpdateTaskRequest } from './task-validation'
 
 // UUID生成用のヘルパー関数
@@ -71,4 +80,99 @@ export function buildTaskFilters(filters: TaskFilters, userId: string) {
 export function buildTaskSort(sortOptions: TaskSortOptions) {
   const sortField = tasks[sortOptions.field]
   return sortOptions.direction === 'desc' ? desc(sortField) : asc(sortField)
+}
+
+// API クライアント用のヘルパー関数
+export class TaskAPIError extends Error {
+  constructor(
+    public status: number,
+    public response: unknown,
+    message?: string,
+  ) {
+    super(message || `API Error: ${status}`)
+    this.name = 'TaskAPIError'
+  }
+}
+
+// API クライアント関数（フロントエンドから使用）
+export async function fetchTasks(
+  filters?: Partial<TaskFilters>,
+  sortOptions?: Partial<TaskSortOptions>,
+): Promise<TaskListResponse> {
+  const params = new URLSearchParams()
+
+  if (filters?.status) params.set('status', filters.status)
+  if (filters?.priority) params.set('priority', filters.priority)
+  if (filters?.dueDateFrom) params.set('dueDateFrom', filters.dueDateFrom)
+  if (filters?.dueDateTo) params.set('dueDateTo', filters.dueDateTo)
+
+  if (sortOptions?.field) params.set('sortField', sortOptions.field)
+  if (sortOptions?.direction) params.set('sortDirection', sortOptions.direction)
+
+  const response = await fetch(`/todos/api/tasks?${params}`)
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new TaskAPIError(response.status, error)
+  }
+
+  return response.json()
+}
+
+export async function createTask(data: CreateTaskRequest): Promise<TaskResponse> {
+  const response = await fetch('/todos/api/tasks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new TaskAPIError(response.status, error)
+  }
+
+  return response.json()
+}
+
+export async function updateTask(taskId: string, data: UpdateTaskRequest): Promise<TaskResponse> {
+  const response = await fetch(`/todos/api/tasks/${taskId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new TaskAPIError(response.status, error)
+  }
+
+  return response.json()
+}
+
+export async function deleteTask(taskId: string): Promise<{ success: boolean }> {
+  const response = await fetch(`/todos/api/tasks/${taskId}`, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new TaskAPIError(response.status, error)
+  }
+
+  return response.json()
+}
+
+export async function getTask(taskId: string): Promise<TaskResponse> {
+  const response = await fetch(`/todos/api/tasks/${taskId}`)
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new TaskAPIError(response.status, error)
+  }
+
+  return response.json()
 }
