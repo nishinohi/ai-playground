@@ -13,6 +13,7 @@ npm start
 ```
 
 The initialization script will:
+
 - Clean up any existing `.wrangler` directory
 - Start wrangler to initialize local D1 and KV
 - Automatically detect the generated SQLite database path
