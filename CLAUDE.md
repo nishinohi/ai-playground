@@ -199,6 +199,37 @@ const Stub = createRoutesStub([
 render(<Stub initialEntries={["/login"]} />);
 ```
 
+## Component Architecture
+
+The project follows a modified Atomic Design pattern integrated with React Router's file-based routing:
+
+### Directory Structure
+
+```txt
+app
+├── routes/               # React Router file-based routing
+├── components/
+│   ├── atoms/           # Basic UI elements (buttons, inputs)
+│   ├── molecules/       # Simple component combinations
+│   ├── organisms/       # Complex UI sections
+│   ├── templates/       # Page layouts and screen implementations
+│   └── domains/         # Shared business-specific components
+```
+
+### Component Organization Rules
+
+1. **Routes**: Minimal implementation, mainly passing data from loaders to templates
+2. **Templates**: Each route has a corresponding template in `components/templates/[RouteName]/`
+3. **Screen-specific components**: Placed within their template directory
+4. **Shared components**: Place in atoms/molecules/organisms based on complexity
+5. **Domain components**: Business logic components used across multiple screens
+
+### Component Conventions
+
+- Props type: Always use `type Props` for main component props
+- Directory structure: Each component in its own directory with index.tsx, tests, and styles
+- No business logic in atoms/molecules/organisms - keep them pure UI components
+
 ## Important Notes
 
 - Always run `pnpm run typegen` after changing Cloudflare bindings in `wrangler.toml`
@@ -229,14 +260,3 @@ render(<Stub initialEntries={["/login"]} />);
 - Pre-commit hooks for ESLint, Stylelint, and Prettier
 - Automatically fixes staged files (`git update-index --again`)
 - Skips during merge/rebase operations
-
-## Project-Specific Guidelines
-
-The project includes detailed Japanese documentation in the `.claude` directory:
-
-- **React Router Guidelines** (`.claude/React Router 固有のルール.md`): Routing conventions, file-based routing patterns, and testing with `createRoutesStub`
-- **Coding Practices** (`.claude/コーディングプラクティス.md`): Functional programming approach, DDD principles, TDD methodology
-- **Component Design** (`.claude/コンポーネント設計.md`): Atomic Design pattern with custom modifications for React Router
-- **Testing Strategy** (`.claude/テスト戦略.md`): Test-first approach, error handling patterns, TypeScript best practices
-
-These documents provide comprehensive guidelines for maintaining consistency across the codebase.

@@ -91,7 +91,10 @@ templates
  └── [ComponentName]
       ├── index.tsx           ## コンポーネントの実装
       ├── index.test.tsx      ## コンポーネントの Unit テスト
-      └── styles.module.css   ## コンポーネントのスタイリング（省略可）
+      ├── styles.module.css   ## コンポーネントのスタイリング（省略可）
+      └── [hooks]             ## コンポーネントに依存する hooks（省略可）
+          ├── hook1.tsx       ## コンポーネントに依存する hooks の実装
+          └── hook2.test.tsx  ## コンポーネントに依存する hooks のテスト
 ```
 
 ## domains の運用
