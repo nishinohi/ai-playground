@@ -1,4 +1,6 @@
-import { CalendarDays, Edit, Trash2 } from 'lucide-react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { CalendarDays, Edit, GripVertical, Trash2 } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -9,11 +11,11 @@ interface TaskCardProps {
   onEdit?: (task: Task) => void
   onDelete?: (task: Task) => void
   onStatusChange?: (task: Task, newStatus: TaskStatus) => void
-  isDragging?: boolean
+  isDragDisabled?: boolean
   className?: string
 }
 
-// 優先度表示のヘルパー
+// 既存のヘルパー関数はそのまま維持...
 function getPriorityColor(priority: TaskPriority): string {
   switch (priority) {
     case 'high':
@@ -40,7 +42,6 @@ function getPriorityLabel(priority: TaskPriority): string {
   }
 }
 
-// 期限表示のヘルパー
 function formatDueDate(dueDate: Date | null): string | null {
   if (!dueDate) return null
 
@@ -82,31 +83,47 @@ export function TaskCard({
   onEdit,
   onDelete,
   onStatusChange: _onStatusChange,
-  isDragging = false,
+  isDragDisabled = false,
   className = '',
 }: TaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+    disabled: isDragDisabled,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
   const dueDateText = formatDueDate(task.dueDate)
   const dueDateColor = getDueDateColor(task.dueDate)
 
   return (
     <Card
-      className={`cursor-grab transition-all duration-200 hover:shadow-md active:cursor-grabbing ${isDragging ? 'rotate-3 opacity-50 shadow-lg' : ''} ${className} `}
-      draggable
-      role="article"
-      aria-label={`タスク: ${task.title}`}
+      ref={setNodeRef}
+      style={style}
+      className={`transition-all duration-200 hover:shadow-md ${isDragging ? 'z-50 opacity-50 shadow-2xl' : ''} ${isDragDisabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'} ${className} `}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="line-clamp-2 text-sm font-medium">{task.title}</CardTitle>
+          <div className="flex min-w-0 flex-1 items-start gap-2">
+            {!isDragDisabled && (
+              <button
+                className="mt-1 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100"
+                {...attributes}
+                {...listeners}
+                aria-label="ドラッグしてタスクを移動"
+              >
+                <GripVertical className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
+            <CardTitle className="line-clamp-2 flex-1 text-sm font-medium">{task.title}</CardTitle>
+          </div>
+
           <div className="flex shrink-0 gap-1">
             {onEdit && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => onEdit(task)}
-                aria-label={`${task.title}を編集`}
-              >
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => onEdit(task)}>
                 <Edit className="h-3 w-3" />
               </Button>
             )}
@@ -116,7 +133,6 @@ export function TaskCard({
                 size="sm"
                 className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                 onClick={() => onDelete(task)}
-                aria-label={`${task.title}を削除`}
               >
                 <Trash2 className="h-3 w-3" />
               </Button>

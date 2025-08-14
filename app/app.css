@@ -138,3 +138,22 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* ドラッグ&ドロップ用のカスタムスタイル */
+.drag-overlay {
+  z-index: 999;
+}
+
+.sortable-ghost {
+  opacity: 0.5;
+}
+
+.drop-zone-active {
+  background-color: rgb(59 130 246 / 10%);
+  border-color: rgb(59 130 246);
+}
+
+/* ドラッグハンドルのホバー効果 */
+.group:hover .group-hover-opacity-100 {
+  opacity: 1;
+}
