@@ -4,31 +4,50 @@
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm typecheck:*)",
-      "Bash(git add:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm dev:*)",
-      "Bash(react-router typegen)",
-      "Bash(tsc --noEmit)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
       "Bash(npx tsc:*)",
       "Bash(find:*)",
       "Bash(ls:*)",
-      "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(mkdir:*)",
+      "mcp__playwright",
+      "mcp__notion",
+      "mcp__context7",
+      "mcp__serena"
     ],
     "deny": []
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["playwright", "notion", "context7"],
   "hooks": {
-    "PostToolUse": [
+    "PreToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write",
+        "matcher": "Read|Grep",
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -qE '\\.(js|ts|cjs|mjs|d\\.cts|d\\.mts|jsx|tsx|json|jsonc)$'; then npx eslint --fix \"$file_path\"; fi; }"
+            "command": "npx tsx ./.claude/hooks/read_hook.ts"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | xargs -I {} npx --yes prettier --write {} 2>/dev/null || true"
           },
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -qE '\\.(js|ts|cjs|mjs|d\\.cts|d\\.mts|jsx|tsx|json|jsonc)$'; then npx prettier --write \"$file_path\"; fi; }"
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | xargs -I {} npx --yes eslint --fix {} 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | grep -E '\\.(ts|tsx)$' >/dev/null && NO_COLOR=1 npx react-router typegen >/dev/null 2>&1 && npx tsc --noEmit || true"
           }
         ]
       }
