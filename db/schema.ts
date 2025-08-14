@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { int, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, int, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 const commonTimestamp = {
   updatedAt: integer('updatedAt', { mode: 'timestamp' })
@@ -78,3 +78,28 @@ export const verification = sqliteTable('verification', {
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => /* @__PURE__ */ new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => /* @__PURE__ */ new Date()),
 })
+
+export const tasks = sqliteTable('tasks', {
+  id: text('id').primaryKey(), // UUID v4
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  status: text('status').notNull().default('not-started'),
+  priority: text('priority').notNull().default('medium'),
+  dueDate: integer('due_date', { mode: 'timestamp' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  ...commonTimestamp,
+})
+
+// インデックス定義
+export const tasksUserIdIndex = index('tasks_user_id_idx').on(tasks.userId)
+export const tasksStatusIndex = index('tasks_status_idx').on(tasks.status)
+export const tasksDueDateIndex = index('tasks_due_date_idx').on(tasks.dueDate)
+
+// 型定義
+export type TaskStatus = 'not-started' | 'doing' | 'done'
+export type TaskPriority = 'high' | 'medium' | 'low'
+
+export type Task = typeof tasks.$inferSelect
+export type NewTask = typeof tasks.$inferInsert

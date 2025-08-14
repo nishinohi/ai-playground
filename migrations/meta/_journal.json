@@ -8,6 +8,13 @@
       "when": 1754237175834,
       "tag": "0000_regular_santa_claus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1755150599515,
+      "tag": "0001_amused_blazing_skull",
+      "breakpoints": true
     }
   ]
 }
