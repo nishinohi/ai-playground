@@ -1,4 +1,6 @@
 import { and, asc, desc, eq } from 'drizzle-orm'
+import type { DrizzleD1Database } from 'drizzle-orm/d1'
+import type * as schema from '~/../../db/schema'
 import { tasks } from '~/../../db/schema'
 import type {
   CreateTaskRequest,
@@ -80,6 +82,93 @@ export function buildTaskFilters(filters: TaskFilters, userId: string) {
 export function buildTaskSort(sortOptions: TaskSortOptions) {
   const sortField = tasks[sortOptions.field]
   return sortOptions.direction === 'desc' ? desc(sortField) : asc(sortField)
+}
+
+// サーバーサイド用データベースアクセス関数
+export async function fetchTasksFromDB(
+  db: DrizzleD1Database<typeof schema>,
+  userId: string,
+  filters?: Partial<TaskFilters>,
+  sortOptions?: Partial<TaskSortOptions>,
+): Promise<TaskListResponse> {
+  const finalFilters: TaskFilters = {
+    status: filters?.status,
+    priority: filters?.priority,
+    dueDateFrom: filters?.dueDateFrom,
+    dueDateTo: filters?.dueDateTo,
+  }
+
+  const finalSortOptions: TaskSortOptions = {
+    field: sortOptions?.field || 'createdAt',
+    direction: sortOptions?.direction || 'desc',
+  }
+
+  const whereCondition = buildTaskFilters(finalFilters, userId)
+  const orderBy = buildTaskSort(finalSortOptions)
+
+  // count をインポートする必要があるので一時的に手動でカウント
+  const [taskList, totalCountResult] = await Promise.all([
+    db.select().from(tasks).where(whereCondition).orderBy(orderBy),
+    db.select().from(tasks).where(whereCondition),
+  ])
+
+  return {
+    tasks: taskList,
+    totalCount: totalCountResult.length,
+  }
+}
+
+export async function createTaskInDB(
+  db: DrizzleD1Database<typeof schema>,
+  userId: string,
+  data: CreateTaskRequest,
+): Promise<TaskResponse> {
+  const newTask = createTaskRequestToNewTask(data, userId)
+  const [createdTask] = await db.insert(tasks).values(newTask).returning()
+
+  return {
+    task: createdTask,
+  }
+}
+
+export async function updateTaskInDB(
+  db: DrizzleD1Database<typeof schema>,
+  taskId: string,
+  userId: string,
+  data: UpdateTaskRequest,
+): Promise<TaskResponse> {
+  const updateData = updateTaskRequestToPartial(data)
+
+  const [updatedTask] = await db
+    .update(tasks)
+    .set({ ...updateData, updatedAt: new Date() })
+    .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)))
+    .returning()
+
+  if (!updatedTask) {
+    throw new Error('Task not found or unauthorized')
+  }
+
+  return {
+    task: updatedTask,
+  }
+}
+
+export async function deleteTaskInDB(
+  db: DrizzleD1Database<typeof schema>,
+  taskId: string,
+  userId: string,
+): Promise<{ success: boolean }> {
+  const result = await db
+    .delete(tasks)
+    .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)))
+    .returning()
+
+  if (result.length === 0) {
+    throw new Error('Task not found or unauthorized')
+  }
+
+  return { success: true }
 }
 
 // API クライアント用のヘルパー関数

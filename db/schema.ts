@@ -83,8 +83,12 @@ export const tasks = sqliteTable('tasks', {
   id: text('id').primaryKey(), // UUID v4
   title: text('title').notNull(),
   content: text('content').notNull(),
-  status: text('status').notNull().default('not-started'),
-  priority: text('priority').notNull().default('medium'),
+  status: text('status', { enum: ['not-started', 'doing', 'done'] })
+    .notNull()
+    .default('not-started'),
+  priority: text('priority', { enum: ['high', 'medium', 'low'] })
+    .notNull()
+    .default('medium'),
   dueDate: integer('due_date', { mode: 'timestamp' }),
   userId: text('user_id')
     .notNull()
