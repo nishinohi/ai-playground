@@ -183,7 +183,33 @@ export class TaskAPIError extends Error {
   }
 }
 
-// API クライアント関数（フロントエンドから使用）
+// 再試行機能付きのFetch関数
+async function fetchWithRetry(url: string, options: RequestInit = {}, maxRetries = 3, delay = 1000): Promise<Response> {
+  let lastError: Error
+
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      const response = await fetch(url, options)
+
+      // 5xx エラーの場合は再試行
+      if (response.status >= 500 && i < maxRetries) {
+        throw new Error(`Server error: ${response.status}`)
+      }
+
+      return response
+    } catch (error) {
+      lastError = error as Error
+
+      if (i < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, i)))
+      }
+    }
+  }
+
+  throw lastError!
+}
+
+// 改良されたAPI関数（再試行機能付き）
 export async function fetchTasks(
   filters?: Partial<TaskFilters>,
   sortOptions?: Partial<TaskSortOptions>,
@@ -198,14 +224,23 @@ export async function fetchTasks(
   if (sortOptions?.field) params.set('sortField', sortOptions.field)
   if (sortOptions?.direction) params.set('sortDirection', sortOptions.direction)
 
-  const response = await fetch(`/todos/api/tasks?${params}`)
+  try {
+    const response = await fetchWithRetry(`/todos/api/tasks?${params}`)
 
-  if (!response.ok) {
-    const error = await response.json()
-    throw new TaskAPIError(response.status, error)
+    if (!response.ok) {
+      const error = await response.json()
+      throw new TaskAPIError(response.status, error, `API Error: ${response.status}`)
+    }
+
+    return response.json()
+  } catch (error) {
+    if (error instanceof TaskAPIError) {
+      throw error
+    }
+
+    // ネットワークエラーの場合
+    throw new TaskAPIError(0, { message: 'Network error' }, 'ネットワークエラーが発生しました')
   }
-
-  return response.json()
 }
 
 export async function createTask(data: CreateTaskRequest): Promise<TaskResponse> {

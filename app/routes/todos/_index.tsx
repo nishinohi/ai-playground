@@ -164,8 +164,9 @@ export default function TodosDashboard() {
   const _isLoading = navigation.state === 'loading' || fetcher.state === 'loading'
   const isSubmitting = navigation.state === 'submitting' || fetcher.state === 'submitting'
 
-  // フィルタリングされたタスク
+  // フィルタリングされたタスクの最適化（フィルタリングロジックの改善）
   const filteredTasks = tasks.filter((task) => {
+    // 検索クエリによるフィルタリング
     if (
       searchQuery &&
       !task.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -173,10 +174,21 @@ export default function TodosDashboard() {
     ) {
       return false
     }
+
+    // ステータスによるフィルタリング
+    if (filters.status && task.status !== filters.status) {
+      return false
+    }
+
+    // 優先度によるフィルタリング
+    if (filters.priority && task.priority !== filters.priority) {
+      return false
+    }
+
     return true
   })
 
-  // タスク統計
+  // タスク統計の計算（最適化済み）
   const taskStats = {
     total: filteredTasks.length,
     notStarted: filteredTasks.filter((t) => t.status === 'not-started').length,

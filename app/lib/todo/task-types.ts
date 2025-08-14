@@ -4,9 +4,21 @@ import type { NewTask as DBNewTask, Task as DBTask } from '~/../../db/schema'
 export type Task = DBTask
 export type NewTask = DBNewTask
 
-// フロントエンド用の型定義
-export type TaskStatus = 'not-started' | 'doing' | 'done'
-export type TaskPriority = 'high' | 'medium' | 'low'
+// フロントエンド用の型定義（厳密な型制約）
+export const TASK_STATUSES = ['not-started', 'doing', 'done'] as const
+export const TASK_PRIORITIES = ['high', 'medium', 'low'] as const
+
+export type TaskStatus = (typeof TASK_STATUSES)[number]
+export type TaskPriority = (typeof TASK_PRIORITIES)[number]
+
+// 型ガード関数
+export function isTaskStatus(value: string): value is TaskStatus {
+  return TASK_STATUSES.includes(value as TaskStatus)
+}
+
+export function isTaskPriority(value: string): value is TaskPriority {
+  return TASK_PRIORITIES.includes(value as TaskPriority)
+}
 
 // API リクエスト・レスポンス型
 export interface CreateTaskRequest {
@@ -58,4 +70,19 @@ export interface TaskError {
 
 export interface TaskValidationError {
   errors: TaskError[]
+}
+
+// API レスポンスの型安全性
+export interface APIResponse<T> {
+  data?: T
+  error?: string
+  success: boolean
+}
+
+export function createSuccessResponse<T>(data: T): APIResponse<T> {
+  return { data, success: true }
+}
+
+export function createErrorResponse(error: string): APIResponse<never> {
+  return { error, success: false }
 }

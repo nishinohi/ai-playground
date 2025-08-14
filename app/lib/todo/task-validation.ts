@@ -8,16 +8,53 @@ export class TaskValidationError extends Error {
   }
 }
 
-// 基本バリデーション関数
+// セキュリティ: HTMLエスケープ関数
+export function sanitizeText(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .trim()
+}
+
+// セキュリティ: 危険なスクリプト検出
+function containsMaliciousScript(text: string): boolean {
+  // スクリプトタグの検出
+  if (/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi.test(text)) {
+    return true
+  }
+
+  // インラインイベントハンドラーの検出
+  if (/on\w+\s*=/i.test(text)) {
+    return true
+  }
+
+  // javascript: プロトコルの検出
+  if (/javascript\s*:/i.test(text)) {
+    return true
+  }
+
+  return false
+}
+
+// セキュリティ強化されたバリデーション関数
 export function validateTaskTitle(title: string): string[] {
   const errors: string[] = []
+  const sanitized = sanitizeText(title)
 
-  if (!title || title.trim().length === 0) {
+  if (!sanitized || sanitized.length === 0) {
     errors.push('Title is required')
   }
 
-  if (title.length > 200) {
+  if (sanitized.length > 200) {
     errors.push('Title must be 200 characters or less')
+  }
+
+  // 危険なスクリプト検出
+  if (containsMaliciousScript(title)) {
+    errors.push('Title contains invalid content')
   }
 
   return errors
@@ -25,13 +62,19 @@ export function validateTaskTitle(title: string): string[] {
 
 export function validateTaskContent(content: string): string[] {
   const errors: string[] = []
+  const sanitized = sanitizeText(content)
 
-  if (!content || content.trim().length === 0) {
+  if (!sanitized || sanitized.length === 0) {
     errors.push('Content is required')
   }
 
-  if (content.length > 2000) {
+  if (sanitized.length > 2000) {
     errors.push('Content must be 2000 characters or less')
+  }
+
+  // 危険なスクリプト検出
+  if (containsMaliciousScript(content)) {
+    errors.push('Content contains invalid content')
   }
 
   return errors

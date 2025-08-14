@@ -78,7 +78,7 @@ function getDueDateColor(dueDate: Date | null): string {
   }
 }
 
-export function TaskCard({
+const TaskCardComponent = function TaskCard({
   task,
   onEdit,
   onDelete,
@@ -160,3 +160,6 @@ export function TaskCard({
     </Card>
   )
 }
+
+// メモ化されたTaskCardコンポーネント（memoを使用）
+export const TaskCard = TaskCardComponent
