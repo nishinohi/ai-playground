@@ -1,0 +1,12 @@
+CREATE TABLE `tasks` (
+	`id` text PRIMARY KEY NOT NULL,
+	`title` text NOT NULL,
+	`content` text NOT NULL,
+	`status` text DEFAULT 'not-started' NOT NULL,
+	`priority` text DEFAULT 'medium' NOT NULL,
+	`due_date` integer,
+	`user_id` text NOT NULL,
+	`updatedAt` integer DEFAULT (unixepoch()) NOT NULL,
+	`createdAt` integer DEFAULT (unixepoch()) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+);
