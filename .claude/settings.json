@@ -8,9 +8,11 @@
       "Bash(pnpm dev:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
+      "Bash(git grep:*)",
       "Bash(npx tsc:*)",
       "Bash(find:*)",
       "Bash(ls:*)",
+      "Bash(grep:*)",
       "Bash(mkdir:*)",
       "mcp__playwright",
       "mcp__notion",
@@ -20,7 +22,7 @@
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["playwright", "notion", "context7"],
+  "enabledMcpjsonServers": ["playwright", "notion", "context7", "serena"],
   "hooks": {
     "PreToolUse": [
       {
@@ -28,7 +30,25 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx tsx ./.claude/hooks/read_hook.ts"
+            "command": "node .claude/hooks/read_hook.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/use-git-grep-instead-grep.js"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/use-git-grep-instead-bash-grep.js"
           }
         ]
       }
@@ -47,7 +67,7 @@
           },
           {
             "type": "command",
-            "command": "jq -r '.tool_response.filePath // .tool_input.file_path // empty' | grep -E '\\.(ts|tsx)$' >/dev/null && NO_COLOR=1 npx react-router typegen >/dev/null 2>&1 && npx tsc --noEmit || true"
+            "command": "node ./.claude/hooks/tsc.js"
           }
         ]
       }
