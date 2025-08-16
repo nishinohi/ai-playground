@@ -28,7 +28,7 @@
     "db:view-prod": "drizzle-kit studio --config ./drizzle/config/drizzle-prod.config.ts"
   },
   "dependencies": {
-    "@anthropic-ai/claude-code": "^1.0.71",
+    "@anthropic-ai/claude-code": "^1.0.83",
     "@cloudflare/workers-types": "^4.20250731.0",
     "@react-router/cloudflare": "^7.7.1",
     "@react-router/fs-routes": "^7.7.1",
