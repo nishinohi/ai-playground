@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Commands Rules
+
+- @.claude/rules/component-design.md
+- @.claude/rules/implement-pattern.md
+- @.claude/rules/test-strategy.md
+- @.claude/rules/tool-chain.md
+
 ## Development Commands
 
 ### Core Development
