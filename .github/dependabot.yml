@@ -1,0 +1,72 @@
+# Dependabot configuration for automatic dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Node.js/npm dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Tokyo'
+    open-pull-requests-limit: 10
+    reviewers:
+      - '@nishi'
+    labels:
+      - 'dependencies'
+      - 'dependabot'
+    commit-message:
+      prefix: 'deps'
+      include: 'scope'
+    # Group related dependencies
+    groups:
+      react-ecosystem:
+        patterns:
+          - 'react*'
+          - '@react-router/*'
+          - '@types/react*'
+      testing:
+        patterns:
+          - '@testing-library/*'
+          - '@vitest/*'
+          - 'vitest'
+      eslint-ecosystem:
+        patterns:
+          - 'eslint*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+      tailwind-ecosystem:
+        patterns:
+          - 'tailwindcss'
+          - '@tailwindcss/*'
+          - 'prettier-plugin-tailwindcss'
+      cloudflare:
+        patterns:
+          - '@cloudflare/*'
+          - 'wrangler'
+      build-tools:
+        patterns:
+          - 'vite*'
+          - '@vitejs/*'
+          - 'typescript'
+          - 'tsx'
+
+  # GitHub Actions dependencies
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Tokyo'
+    open-pull-requests-limit: 5
+    reviewers:
+      - '@nishi'
+    labels:
+      - 'github-actions'
+      - 'dependabot'
+    commit-message:
+      prefix: 'ci'
+      include: 'scope'
