@@ -82,11 +82,11 @@
     "stylelint": "^16.23.0",
     "stylelint-config-standard": "^39.0.0",
     "tailwindcss": "^4.1.11",
-    "tsx": "^4.20.3",
+    "tsx": "^4.20.4",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vite": "^7.0.6",
+    "vite": "^7.1.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4",
     "wrangler": "^4.27.0"
